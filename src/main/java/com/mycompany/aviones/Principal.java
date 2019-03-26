@@ -3,14 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.mycompany.aviones;
+package com.mycompany.avion;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -24,23 +27,320 @@ import java.util.regex.Pattern;
 public class Principal {
 
     public BufferedReader entradaDatos = new BufferedReader(new InputStreamReader(System.in));
-    Avion avion1;
-    Persona cliente;
-    double precioGeneral = 87.920;
-    double precioVip = 100.598;
-    double acum = 0;
-    boolean av1 = false;
-    boolean av2 = false;
-    boolean av3 = false;
-   
-    
-    
-    SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+    Avion avion1; //Objeto avion
+    Persona cliente; //Objeto Persona
+    double precioGeneral = 90000.0; //Coto pasaje generel
+    double precioVip = 150000.0; //Costo pasaje VIP
+    double totalAcumulado = 0; //Total dinero de pasaje vendidos
+    boolean av1 = false; //Estado avion 1
+    boolean av2 = false; //Estado avion 2
+    boolean av3 = false; //Estado avion 3   
+    String rojo ="\033[31m"; //Declaro color rojo 
+    String verde ="\033[32m"; //Decalro color verde
 
     public Principal() {
 
-        avion1 = new Avion();
-        //////////////////creacion sillas VIP avion /////////////////////
+        AgregarAsientos();//Metodo que carga los asientos
+
+    }
+
+    public void Menu() throws IOException, ParseException {
+        String opcion = "";
+        String opcion2 = "";
+  
+        do {
+            
+            boolean estado = false;
+            boolean error = false;
+            
+            System.out.println("1. Avion General/Vip");
+            System.out.println("2. Avion General");
+            System.out.println("3. Avion Vip");
+            System.out.println("0. Salir ");
+            System.out.print(rojo+"Digite la opcion deseada:  ");
+
+            try {
+                opcion = entradaDatos.readLine();
+            } catch (IOException ex) {
+                Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            if (opcion.equals("1")) {
+                if (av1 == true) {
+                    System.out.println(verde+"El avion ya despego ");
+                } else {
+                    do {
+                        
+                        //Strings que concatenan la sillas por fila para imprimir.
+                        String A = concatenarSillasVipA();
+                        String B = concatenarSillasVipB();
+                        String C = concatenarSillasGenC();
+                        String D = concatenarSillasGenD();
+                        String E = concatenarSillasGenE();
+                        //Imprime el lo asientos
+                        System.out.println("\n ");
+                        System.out.println("\n"
+                        + "|-------------------|\n" 
+                        + "|       123456      |\n"               
+                        + "|    A: " + A + "      |\n"
+                        + "|    B: " + B + "      |\n"
+                        + "|-------------------|\n"
+                        + "|       12345678    |\n"
+                        + "|    C: " + C + "    |\n"
+                        + "|    D: " + D + "    |\n"
+                        + "|    E: " + E + "    |\n"
+                        + "|-------------------|\n");
+
+                        System.out.println("1.Comprar boleto.");
+                        System.out.println("2.Despegar.");
+                        System.out.print(rojo+"Digite la opcion deseada:  ");
+                        //Declaramos variables
+                        int cc = 0;
+                        String name = "";
+                        Date fech = null;
+                        String asiento = "";
+
+                        try {
+                            opcion2 = entradaDatos.readLine();
+                        } catch (IOException ex) {
+                            Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        if (opcion2.equals("1")) {
+
+                            while (error == false) {
+                                System.out.println("Cedula cliente: ");
+                                String v = entradaDatos.readLine();
+                                if (isNumeric(v)) {
+
+                                    cc = Integer.parseInt(v);
+                                    break;
+                                } else {
+                                    System.out.println(rojo+"Digite un numero valido");
+                                }
+                            }
+                            while (error == false) {
+                                System.out.println("Nombre cliente: ");
+                                name = entradaDatos.readLine();
+                                if (soloLetras(name)) {
+                                    break;
+                                } else {
+                                    System.out.println(rojo+"Digite un nombre valido, solo letras");
+                                }
+                            }
+                            while (error == false) {
+                                System.out.println("Fecha de nacimiento dd-mm-yyyy: ");
+                                String f = entradaDatos.readLine();
+                                if (validarFecha(f)) {
+                                    fech = new SimpleDateFormat("dd-MM-yyyy").parse(f);
+                                    break;
+                                } else {
+                                    System.out.println(rojo+"Ingrese una fecha valida");
+                                }
+
+                            }
+
+                            System.out.println(verde+"Costo asiento VIP es de $" + precioVip + " Pesos");
+                            System.out.println(verde+"Costo asiento General es de $" + precioGeneral + " Pesos");
+                            while (error == false) {
+
+                                System.out.println(rojo+"Ubicacion del asiento, ejemplo: A1 B1)");
+                                asiento = entradaDatos.readLine();
+                                if (validaAsiento1(asiento)) {
+                                    break;
+
+                                } else {
+                                    System.out.println(rojo+"Asiento no existe");
+                                    System.out.println(rojo+"Letra mayuscula y numero, por favor.");
+                                }
+                            }
+
+                            compraClienteA1(cc, name, fech, asiento);
+
+                        } else if (opcion2.equals("2")) {
+                            despegarAvion();
+                            av1 = true;
+                            estado = true;
+                        }
+                        
+                    } while (estado == false);
+
+                }
+
+            } else if (opcion.equals("2")) {
+                if (av2 == true) {
+                    System.out.println(verde+"El avion ya despego.");
+                } else {
+                    do {
+                        String C = concatenarSillasGenC();
+                        String D = concatenarSillasGenD();
+                        String E = concatenarSillasGenE();
+                        System.out.println("\n"
+                        + "|-------------------|\n"
+                        + "|       12345678    |\n"
+                        + "|    C: " + C + "    |\n"
+                        + "|    D: " + D + "    |\n"
+                        + "|    E: " + E + "    |\n"
+                        + "|-------------------|\n");
+
+                        System.out.println("1.Comprar boleto");
+                        System.out.println("2.Despegar");
+                        System.out.print(rojo+"Digite la opcion deseada:  ");
+
+                        int cc = 0;
+                        String name = "";
+                        Date fech = null;
+                        String asiento = "";
+                        try {
+                            opcion2 = entradaDatos.readLine();
+                        } catch (IOException ex) {
+                            Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        if (opcion2.equals("1")) {
+
+                            while (error == false) {
+                                System.out.println("Cedula cliente: ");
+                                String v = entradaDatos.readLine();
+                                if (isNumeric(v)) {
+
+                                    cc = Integer.parseInt(v);
+                                    break;
+                                } else {
+                                    System.out.println(rojo+"Digite un numero valido");
+                                }
+                            }
+                            while (error == false) {
+                                System.out.println("Nombre cliente: ");
+                                name = entradaDatos.readLine();
+                                if (soloLetras(name)) {
+                                    break;
+                                } else {
+                                    System.out.println(rojo+"Digite un nombre valido, solo letras");
+                                }
+                            }
+                            while (error == false) {
+                                System.out.println("Fecha de nacimiento dd-mm-yyyy: ");
+                                String f = entradaDatos.readLine();
+                                if (validarFecha(f)) {
+                                    fech = new SimpleDateFormat("dd-MM-yyyy").parse(f);
+                                    break;
+                                } else {
+                                    System.out.println(rojo+"Ingrese una fecha valida");
+                                }
+
+                            }
+                            System.out.println(verde+"Costo asiento general es de $" + precioGeneral + " Pesos");
+                            while (error == false) {
+
+                                System.out.println(rojo+"Ubicacion del asitno, ejemplo: A1 B1");
+                                asiento = entradaDatos.readLine();
+                                if (validaAsiento2(asiento)) {
+                                    break;
+
+                                } else {
+                                    System.out.println(rojo+"Asiento no existe");
+                                    System.out.println(rojo+"Letra mayuscula y numero, por favor.");
+                                }
+                            }
+                            compraClienteA2(cc, name, fech, asiento);
+
+                        } else if (opcion2.equals("2")) {
+                            despegarAvion();
+                            av2 = true;
+                            estado = true;
+                        }
+                        
+                    } while (estado == false);
+                }
+
+            } else if (opcion.equals("3")) {
+                if (av3 == true) {
+                    System.out.println(verde+"El avion ya despego ");
+                } else {
+                    do {
+                        String A = concatenarSillasVipA();
+                        String B = concatenarSillasVipB();
+                        System.out.println("\n"
+                        + "|-------------------|\n" 
+                        + "|       123456      |\n"               
+                        + "|    A: " + A + "      |\n"
+                        + "|    B: " + B + "      |\n"
+                        + "|-------------------|\n");
+
+                        System.out.println("1.Comprar boleto.");
+                        System.out.println("2.Despegar.");
+                        System.out.print(rojo+"Digite la opcion deseada:  ");
+
+                        int cc = 0;
+                        String name = "";
+                        Date fech = null;
+                        String asiento = "";
+                        try {
+                            opcion2 = entradaDatos.readLine();
+                        } catch (IOException ex) {
+                            Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        if (opcion2.equals("1")) {
+
+                            while (error == false) {
+                                System.out.println("Cedula cliente: ");
+                                String v = entradaDatos.readLine();
+                                if (isNumeric(v)) {
+
+                                    cc = Integer.parseInt(v);
+                                    break;
+                                } else {
+                                    System.out.println(rojo+"Digite un numero valido");
+                                }
+                            }
+                            while (error == false) {
+                                System.out.println("Nombre cliente: ");
+                                name = entradaDatos.readLine();
+                                if (soloLetras(name)) {
+                                    break;
+                                } else {
+                                    System.out.println(rojo+"Digite un nombre valido, solo letras");
+                                }
+                            }
+                            while (error == false) {
+                                System.out.println("Fecha de nacimiento dd-mm-yyyy: ");
+                                String f = entradaDatos.readLine();
+                                if (validarFecha(f)) {
+                                    fech = new SimpleDateFormat("dd-MM-yyyy").parse(f);
+                                    break;
+                                } else {
+                                    System.out.println(rojo+"Ingrese una fecha valida");
+                                }
+
+                            }
+                            System.out.println(verde+"Costo asiento VIP es de $" + precioVip + " Pesos");
+                            while (error == false) {
+
+                                System.out.println(rojo+"Ubicacion del asiento, ejemplo: A1 B1");
+                                asiento = entradaDatos.readLine();
+                                if (validaAsiento3(asiento)) {
+                                    break;
+
+                                } else {
+                                    System.out.println(rojo+"Asiento no existe");
+                                    System.out.println(rojo+"Letra mayuscula y numero, por favor.");
+                                }
+                            }
+                            compraClienteA3(cc, name, fech, asiento);
+
+                        } else if (opcion2.equals("2")) {
+                            despegarAvion();
+                            av3 = true;
+                            estado = true;
+                        }
+                    } while (estado == false);
+                }
+            }
+
+        } while (!(opcion.equals("0")));
+    }
+    
+    public void AgregarAsientos(){
+        avion1 = new Avion(); // Se intancia el avion 
+        //Se crea el avion VIP
         avion1.getVip().add(0, new Vip("O", "A1"));
         avion1.getVip().add(1, new Vip("O", "A2"));
         avion1.getVip().add(2, new Vip("O", "A3"));
@@ -53,7 +353,7 @@ public class Principal {
         avion1.getVip().add(9, new Vip("O", "B4"));
         avion1.getVip().add(10, new Vip("O", "B5"));
         avion1.getVip().add(11, new Vip("O", "B6"));
-        //////////////////creacion sillas General avion /////////////////////
+        //Se crea el avion General
         avion1.getGeneral().add(0, new General("o", "C1"));
         avion1.getGeneral().add(1, new General("o", "C2"));
         avion1.getGeneral().add(2, new General("o", "C3"));
@@ -78,357 +378,6 @@ public class Principal {
         avion1.getGeneral().add(21, new General("o", "E6"));
         avion1.getGeneral().add(22, new General("o", "E7"));
         avion1.getGeneral().add(23, new General("o", "E8"));
-        /////////////////////////////////////////////////////////////////////////
-
-    }
-
-    public void Menu() throws IOException, ParseException {
-        String opcion = "";
-        String opcion2 = "";
-  
-        do {
-            
-            boolean estado = false;
-            boolean error = false;
-            System.out.println("Digite la opcion deseada  ");
-            System.out.println("1.Avion general/vip");
-            System.out.println("2.Avion general");
-            System.out.println("3.Avion vip");
-            System.out.println("0.salir ");
-            System.out.println("->");
-
-            try {
-                opcion = entradaDatos.readLine();
-            } catch (IOException ex) {
-                Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            if (opcion.equals("1")) {
-                if (av1 == true) {
-                    System.out.println("El avion ya esta en los aires ");
-                } else {
-                    do {
-                        String A = concatenarSillasVipA();
-                        String B = concatenarSillasVipB();
-                        String C = concatenarSillasGenC();
-                        String D = concatenarSillasGenD();
-                        String E = concatenarSillasGenE();
-                        System.out.println("              AVION #1 VIP/GENERAL`               \n ");
-                        System.out.println("                       yNNy`                      \n"
-                                + "                     `mm..mm`                     \n"
-                                + "                     sM:  :Ms                     \n"
-                                + "                     Nd    dN                     \n"
-                                + "                    :Mo    oM:                    \n"
-                                + "                    +M/    /M+                    \n"
-                                + "                    sM-    -Ms                    \n"
-                                + "                   `yM. VIP My`                   \n"
-                                + "                     \033[31m 123456\n"
-                                + "         -+ymm  A---->" + A + "   ./ohmmy+-         \n"
-                                + "      :yNms/`   B---->" + B + "       :smNy:      \n"
-                                + "   `oNd+.     ----------||--------       .+dNo`   \n"
-                                + "                    \033[31m 12345678\n"
-                                + "  oNh-          C--> " + C + "               -hNo  \n"
-                                + " yM/       `    D--> " + D + "                 /My \n"
-                                + " yM/       `    E--> " + E + "                 /My \n"
-                                + ".Mmosyhdmmmdhyyso+/:dM`    `Md:/+ossyhdmmmdhysomM.\n"
-                                + " `                  hM`    `Mh            `       \n"
-                                + "                    yM.    .My                    \n"
-                                + "                    oM-    -Mo                    \n"
-                                + "                    /M/    +M/                    \n"
-                                + "                    .My    yM.                    \n"
-                                + "                 `:odN+    +Ndo:`                 \n"
-                                + "               odNh+-`      `-+hNdo               \n"
-                                + "              -MNdmmmmN+  +NmmmmdNM-              \n"
-                                + "               `.`    hM--Mh    `.`               \n"
-                                + "                      `yNNy`                        ");
-
-                        System.out.println("Por favor digite que accion desea realizar ");
-                        System.out.println("1.Comprar boleto");
-                        System.out.println("2.Despegar");
-                        int cc = 0;
-                        String name = "";
-                        Date fech = null;
-                        String asiento = "";
-                       
-                        
-                        try {
-                            opcion2 = entradaDatos.readLine();
-                        } catch (IOException ex) {
-                            Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                        if (opcion2.equals("1")) {
-
-                            while (error == false) {
-                                System.out.println("Ingrese su Cedula");
-                                String v = entradaDatos.readLine();
-                                if (isNumeric(v)) {
-
-                                    cc = Integer.parseInt(v);
-                                    break;
-                                } else {
-                                    System.out.println("no es un numero");
-                                }
-                            }
-                            while (error == false) {
-                                System.out.println("Ingrese su nombre");
-                                name = entradaDatos.readLine();
-                                if (soloLetras(name)) {
-                                    break;
-                                } else {
-                                    System.out.println("solo se aceptan letras");
-                                }
-                            }
-                            while (error == false) {
-                                System.out.println("Ingrese su fecha de nacimiento dd-mm-yyyy");
-                                String f = entradaDatos.readLine();
-                                if (validarFecha(f)) {
-                                    fech = new SimpleDateFormat("dd-MM-yyyy").parse(f);
-                                    break;
-                                } else {
-                                    System.out.println("ingrese una fecha valida");
-                                }
-
-                            }
-
-                            System.out.println("asiento VIP tiene un costo de $" + precioVip + " Pesos");
-                            System.out.println("asiento General tiene un costo de $" + precioGeneral + " Pesos");
-                            while (error == false) {
-
-                                System.out.println("Por favor ingrese el codigo del asiento a comprar (A1/B1)");
-                                asiento = entradaDatos.readLine();
-                                if (validaAsiento1(asiento)) {
-                                    break;
-
-                                } else {
-                                    System.out.println("Asiento no existe o es incorrecto");
-                                    System.out.println("primera letra en MAYUS SEGUIDO DEL NUMERO");
-                                }
-                            }
-
-                            compraClienteA1(cc, name, fech, asiento);
-
-                        } else if (opcion2.equals("2")) {
-                            despegarAvion();
-                            av1 = true;
-                            estado = true;
-                        }
-                    } while (estado == false);
-
-                }
-
-            } else if (opcion.equals("2")) {
-                if (av2 == true) {
-                    System.out.println("El avion ya esta en los aires ");
-                } else {
-                    do {
-                        String C = concatenarSillasGenC();
-                        String D = concatenarSillasGenD();
-                        String E = concatenarSillasGenE();
-                        System.out.println("              AVION #2 GENERAL`                   \n ");
-                        System.out.println("                       yNNy`                      \n"
-                                + "                     `mm..mm`                     \n"
-                                + "                     sM:  :Ms                     \n"
-                                + "                     Nd    dN                     \n"
-                                + "                    :Mo    oM:                    \n"
-                                + "                    +M/    /M+                    \n"
-                                + "                    sM-    -Ms                    \n"
-                                + "                   `yM.     My`                   \n"
-                                + "                    \033[31m 12345678\n"
-                                + "         -+ymm                    ./ohmmy+-       \n"
-                                + "      :yNms/`                         :smNy:      \n"
-                                + "   `oNd+.       C--->" + C + "          .+dNo`    \n"
-                                + "  oNd+.         D--> " + D + "              oNd+. \n"
-                                + "  oNh-          E--> " + E + "               -hNo \n"
-                                + " yM/       `                                 /My\n"
-                                + " yM/       `                     /My\n"
-                                + ".Mmosyhdmmmdhyyso+/:dM`    `Md:/+ossyhdmmmdhysomM.\n"
-                                + " `                  hM`    `Mh            `       \n"
-                                + "                    yM.    .My                    \n"
-                                + "                    oM-    -Mo                    \n"
-                                + "                    /M/    +M/                    \n"
-                                + "                    .My    yM.                    \n"
-                                + "                 `:odN+    +Ndo:`                 \n"
-                                + "               odNh+-`      `-+hNdo               \n"
-                                + "              -MNdmmmmN+  +NmmmmdNM-              \n"
-                                + "               `.`    hM--Mh    `.`               \n"
-                                + "                      `yNNy`                        ");
-
-                        System.out.println("Por favor digite que accion desea realizar ");
-                        System.out.println("1.Comprar boleto");
-                        System.out.println("2.Despegar");
-
-                        int cc = 0;
-                        String name = "";
-                        Date fech = null;
-                        String asiento = "";
-                        try {
-                            opcion2 = entradaDatos.readLine();
-                        } catch (IOException ex) {
-                            Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                        if (opcion2.equals("1")) {
-
-                            while (error == false) {
-                                System.out.println("Ingrese su Cedula");
-                                String v = entradaDatos.readLine();
-                                if (isNumeric(v)) {
-
-                                    cc = Integer.parseInt(v);
-                                    break;
-                                } else {
-                                    System.out.println("no es un numero");
-                                }
-                            }
-                            while (error == false) {
-                                System.out.println("Ingrese su nombre");
-                                name = entradaDatos.readLine();
-                                if (soloLetras(name)) {
-                                    break;
-                                } else {
-                                    System.out.println("solo se aceptan letras");
-                                }
-                            }
-                            while (error == false) {
-                                System.out.println("Ingrese su fecha de nacimiento dd-mm-yyyy");
-                                String f = entradaDatos.readLine();
-                                if (validarFecha(f)) {
-                                    fech = new SimpleDateFormat("dd-MM-yyyy").parse(f);
-                                    break;
-                                } else {
-                                    System.out.println("ingrese una fecha valida");
-                                }
-
-                            }
-                            System.out.println("asiento General tiene un costo de $" + precioGeneral + " Pesos");
-                            while (error == false) {
-
-                                System.out.println("Por favor ingrese el codigo del asiento a comprar (A1/B1)");
-                                asiento = entradaDatos.readLine();
-                                if (validaAsiento2(asiento)) {
-                                    break;
-
-                                } else {
-                                    System.out.println("Asiento no existe o es incorrecto");
-                                    System.out.println("primera letra en MAYUS SEGUIDO DEL NUMERO");
-                                }
-                            }
-                            compraClienteA2(cc, name, fech, asiento);
-
-                        } else if (opcion2.equals("2")) {
-                            despegarAvion();
-                            av2 = true;
-                            estado = true;
-                        }
-                    } while (estado == false);
-                }
-
-            } else if (opcion.equals("3")) {
-                if (av3 == true) {
-                    System.out.println("El avion ya esta en los aires ");
-                } else {
-                    do {
-                        String A = concatenarSillasVipA();
-                        String B = concatenarSillasVipB();
-
-                        System.out.println("                 AVION #3 VIP`                   \n ");
-                        System.out.println("                       yNNy`                      \n"
-                                + "                     `mm..mm`                     \n"
-                                + "                     sM:  :Ms                     \n"
-                                + "                     Nd    dN                     \n"
-                                + "                    :Mo    oM:                    \n"
-                                + "                    +M/    /M+                    \n"
-                                + "                    sM-    -Ms                    \n"
-                                + "                   `yM.     My`                   \n"
-                                + "                    \033[31m 123456\n"
-                                + "         -+ymm                    ./ohmmy+-       \n"
-                                + "      :yNms/`                         :smNy:      \n"
-                                + "   `oNd+.       A--->" + A + "          .+dNo`    \n"
-                                + "  oNd+.                                     oNd+. \n"
-                                + "  oNh-                                       -hNo \n"
-                                + " yM/       `    B--> " + B + "                 /My\n"
-                                + " yM/       `                                   /My\n"
-                                + ".Mmosyhdmmmdhyyso+/:dM`    `Md:/+ossyhdmmmdhysomM.\n"
-                                + " `                  hM`    `Mh            `       \n"
-                                + "                    yM.    .My                    \n"
-                                + "                    oM-    -Mo                    \n"
-                                + "                    /M/    +M/                    \n"
-                                + "                    .My    yM.                    \n"
-                                + "                 `:odN+    +Ndo:`                 \n"
-                                + "               odNh+-`      `-+hNdo               \n"
-                                + "              -MNdmmmmN+  +NmmmmdNM-              \n"
-                                + "               `.`    hM--Mh    `.`               \n"
-                                + "                      `yNNy`                        ");
-
-                        System.out.println("Por favor digite que accion desea realizar ");
-                        System.out.println("1.Comprar boleto");
-                        System.out.println("2.Despegar");
-
-                        int cc = 0;
-                        String name = "";
-                        Date fech = null;
-                        String asiento = "";
-                        try {
-                            opcion2 = entradaDatos.readLine();
-                        } catch (IOException ex) {
-                            Logger.getLogger(Principal.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                        if (opcion2.equals("1")) {
-
-                            while (error == false) {
-                                System.out.println("Ingrese su Cedula");
-                                String v = entradaDatos.readLine();
-                                if (isNumeric(v)) {
-
-                                    cc = Integer.parseInt(v);
-                                    break;
-                                } else {
-                                    System.out.println("no es un numero");
-                                }
-                            }
-                            while (error == false) {
-                                System.out.println("Ingrese su nombre");
-                                name = entradaDatos.readLine();
-                                if (soloLetras(name)) {
-                                    break;
-                                } else {
-                                    System.out.println("solo se aceptan letras");
-                                }
-                            }
-                            while (error == false) {
-                                System.out.println("Ingrese su fecha de nacimiento dd-mm-yyyy");
-                                String f = entradaDatos.readLine();
-                                if (validarFecha(f)) {
-                                    fech = new SimpleDateFormat("dd-MM-yyyy").parse(f);
-                                    break;
-                                } else {
-                                    System.out.println("ingrese una fecha valida");
-                                }
-
-                            }
-                            System.out.println("asiento Vip tiene un costo de $" + precioVip + " Pesos");
-                            while (error == false) {
-
-                                System.out.println("Por favor ingrese el codigo del asiento a comprar (A1/B1)");
-                                asiento = entradaDatos.readLine();
-                                if (validaAsiento3(asiento)) {
-                                    break;
-
-                                } else {
-                                    System.out.println("Asiento no existe o es incorrecto");
-                                    System.out.println("primera letra en MAYUS SEGUIDO DEL NUMERO");
-                                }
-                            }
-                            compraClienteA3(cc, name, fech, asiento);
-
-                        } else if (opcion2.equals("2")) {
-                            despegarAvion();
-                            av3 = true;
-                            estado = true;
-                        }
-                    } while (estado == false);
-                }
-            }
-
-        } while (!(opcion.equals("0")));
     }
 
     public String concatenarSillasVipA() {
@@ -498,11 +447,11 @@ public class Principal {
                         if (temp.getEstado().contains("O")) {
                             temp.setPer(cliente = new Persona(cedu, nom, fech));
                             temp.setEstado("X");
-                            acum = acum + precioVip;
+                            totalAcumulado = totalAcumulado + precioVip;
 
                         } else {
                             
-                            System.out.println("El Asiento esta ocupado");
+                            System.out.println(verde+"El Asiento esta ocupado");
                             
 
                         }
@@ -511,7 +460,7 @@ public class Principal {
                    
                     }
                     }catch (RuntimeException ex) {
-                   System.out.println("la silla no existe" + ex);
+                   System.out.println(rojo+"La silla no existe" + ex);
 
                     }
                 
@@ -525,11 +474,11 @@ public class Principal {
                         if (temp.getEstado().contains("o")) {
                             temp.setPer(cliente = new Persona(cedu, nom, fech));
                             temp.setEstado("x");
-                            acum = acum + precioVip;
+                            totalAcumulado = totalAcumulado + precioVip;
 
                         } else {
                             
-                            System.out.println("El Asiento esta ocupado");
+                            System.out.println(verde+"El Asiento esta ocupado");
                           
 
                         }
@@ -538,12 +487,12 @@ public class Principal {
                    
                     }
                     }catch (RuntimeException ex) {
-                   System.out.println("la silla no existe" + ex);
+                   System.out.println(rojo+"La silla no existe" + ex);
 
                     }
                 }
                 } else {
-                System.out.println("Ingreso un caracter no valido ");
+                System.out.println(rojo+"Ingreso un caracter no valido ");
             }
         }
     public void compraClienteA2(int cedu, String nom, Date fech, String asien) {
@@ -558,11 +507,11 @@ public class Principal {
                         if (temp.getEstado().contains("o")) {
                             temp.setPer(cliente = new Persona(cedu, nom, fech));
                             temp.setEstado("x");
-                            acum = acum + precioGeneral;
+                            totalAcumulado = totalAcumulado + precioGeneral;
 
                         } else {
                             
-                            System.out.println("El Asiento esta ocupado");
+                            System.out.println(verde+"El Asiento esta ocupado");
                           
 
                         }
@@ -571,12 +520,12 @@ public class Principal {
                    
                     }
                     }catch (RuntimeException ex) {
-                   System.out.println("la silla no existe" + ex);
+                   System.out.println(rojo+"La silla no existe" + ex);
 
                     }
                 }
                 } else {
-                System.out.println("Ingreso un caracter no valido ");
+                System.out.println(rojo+"Ingreso un caracter no valido ");
             }
         }
     public void compraClienteA3(int cedu, String nom, Date fech, String asien) {
@@ -590,11 +539,11 @@ public class Principal {
                         if (temp.getEstado().contains("O")) {
                             temp.setPer(cliente = new Persona(cedu, nom, fech));
                             temp.setEstado("X");
-                            acum = acum + precioVip;
+                            totalAcumulado = totalAcumulado + precioVip;
 
                         } else {
                             
-                            System.out.println("El Asiento esta ocupado");
+                            System.out.println(verde+"El Asiento esta ocupado");
                           
 
                         }
@@ -603,7 +552,7 @@ public class Principal {
                    
                     }
                     }catch (RuntimeException ex) {
-                   System.out.println("la silla no existe" + ex);
+                   System.out.println(rojo+"La silla no existe" + ex);
 
                     }
                 
@@ -621,7 +570,7 @@ public class Principal {
                 System.out.println(" Silla :"+temp.getUbicacion());
                 System.out.println(" Cedula :"+temp.getPer().getCedula());
                 System.out.println(" Nombre :"+temp.getPer().getNombre());
-                System.out.println(" fecha :"+new SimpleDateFormat("dd-MM-yyyy").format(temp.getPer().getFechaNacimiento()));
+                System.out.println(" Fecha :"+new SimpleDateFormat("dd-MM-yyyy").format(temp.getPer().getFechaNacimiento()));
                 System.out.println("____________________________________");
                 temp.setEstado("O");
                 temp.setPer(null);
@@ -642,8 +591,8 @@ public class Principal {
             }
 
         }
-        System.out.println("Total Ingresos del avion es \n " + acum);
-        acum=0;
+        System.out.println("Total Ingresos del avion es \n " + totalAcumulado);
+        totalAcumulado=0;
 
     }
 
